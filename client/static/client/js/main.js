@@ -52,14 +52,14 @@ function init(){
     controls.minDistance = 500;
     controls.maxDistance = 500;
 
-    controls.addEventListener("change", render)
+    controls.addEventListener("change", render);
 
     const redLambertMaterial = new THREE.MeshLambertMaterial({
         color: 0xCC0000
     });
 
-    // create cube
-     player = new THREE.Mesh(new THREE.SphereGeometry(50, 16, 16), redLambertMaterial);
+    // create player
+    player = new THREE.Mesh(new THREE.SphereGeometry(50, 16, 16), redLambertMaterial);
 
     // create point light
     const pointLight = new THREE.PointLight(0xFFFFFF);
@@ -86,7 +86,10 @@ function init(){
     // note that because the ground does not cast a shadow, .castShadow is left false
     ground.receiveShadow = true;
 
+    var planet = createPlanet();
+
     // add everything to scene
+    scene.add(planet.mesh);
     scene.add(camera);
     scene.add(player);
     scene.add(pointLight);
@@ -131,18 +134,22 @@ function updateCamera(){
 
 	// move
 	if (input.forward){
-        player.position.add(direction.multiplyScalar(moveDistance));
+        console.log('going forward');
+        player.position.add(direction.normalize().multiplyScalar(moveDistance));
     }
 	if (input.backward){
-        player.position.add(-direction);
+	    console.log('going backward');
+        player.position.add((direction.normalize().multiplyScalar(-moveDistance)));
     }
 	if (input.left)
 	{
+        console.log('going left');
         player.position.add(new THREE.Vector3().crossVectors(vectorUp, direction).normalize().multiplyScalar(moveDistance));
         camera.position.add(new THREE.Vector3().crossVectors(vectorUp, direction).normalize().multiplyScalar(moveDistance));
 	}
 	if (input.right)
 	{
+        console.log('going right');
         player.position.add(new THREE.Vector3().crossVectors(direction, vectorUp).normalize().multiplyScalar(moveDistance));
         camera.position.add(new THREE.Vector3().crossVectors(direction, vectorUp).normalize().multiplyScalar(moveDistance));
 	}
@@ -187,4 +194,9 @@ function unmove(event){
         default:
             return;
     }
+}
+
+function createPlanet(){
+    var planet = new Planet(1234);
+    return planet;
 }
