@@ -20,7 +20,7 @@
         <a class="nav-item" href="/">
             Home
         </a>
-        <a class="nav-item" href="lobby">
+        <a class="nav-item" href="/client/lobbies">
             Lobby
         </a>
     </div>
@@ -53,10 +53,11 @@
     </div>
 </nav>
 
-<div class="columns">
-    {% block body %}
-    {% endblock %}
-</div>
+{% block body %}
+{% endblock %}
+
+{% block scripts %}
+{% endblock %}
 
 </body>
 </html>

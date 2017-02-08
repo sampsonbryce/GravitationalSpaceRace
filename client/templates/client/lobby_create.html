@@ -1,0 +1,26 @@
+{% extends 'core/home.html' %}
+
+{% load widget_tweaks %}
+
+{% block title %}Create Lobby{% endblock %}
+
+{% block body %}
+    <div class="column is-2 is-offset-5 has-text-centered">
+        <form method="post" action=".">
+            {% csrf_token %}
+            {% for field in form %}
+                <div class="columns">
+                    <div class="column is-4">
+                        {{ field.label_tag }}
+                    </div>
+                    <div class="column is-8">
+                        {% render_field field class+="input" %}
+                    </div>
+                    <div class="column is-12">
+                        {{ field.errors }}
+                    </div>
+                </div>
+            {% endfor %}
+            <button type="submit" class="button is-primary">Create</button>
+        </form>
+    </div>{% endblock %}
