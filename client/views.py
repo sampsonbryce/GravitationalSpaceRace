@@ -1,8 +1,10 @@
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ObjectDoesNotExist
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, Http404
+from django.db.models import Count
 from django.shortcuts import render
 from .models import Lobby, LobbyUserMap
+from django.contrib.auth.models import User
 from .forms import CreateLobbyForm
 
 
@@ -15,7 +17,8 @@ def index(request):
 def lobby_list(request):
     # get lobbies and render view for lobbies
     try:
-        lobbies = Lobby.objects.all()
+        lobbies = Lobby.objects.annotate(player_count=Count('lobbyusermap__user'))
+        print("Lobbies", lobbies)
     except Lobby.DoesNotExist:
         lobbies = []
 
@@ -53,13 +56,28 @@ def lobby_join(request, lobby_id):
 
 
 @login_required(login_url='/accounts/login/')
+def lobby_leave(request, lobby_id):
+    if request.user.is_authenticated():
+
+        LobbyUserMap.objects.filter(user=request.user, lobby=Lobby.objects.get(id=lobby_id)).delete() # delete lobby map
+
+    return HttpResponseRedirect("/client/lobby/list/")
+
+
+@login_required(login_url='/accounts/login/')
 def lobby(request, lobby_id):
     try:
         lobby_map = LobbyUserMap.objects.get(user=request.user, lobby=lobby_id)
         if request.user.is_authenticated():
-            lobby = Lobby.objects.get(id=lobby_id)
-            context = {'lobby': lobby}
+            lobby_model = Lobby.objects.get(id=lobby_id)
+            players = User.objects.filter(lobbyusermap__lobby=lobby_id)
+            context = {
+                'lobby': lobby_model,
+                'players': players
+            }
             return render(request, "client/lobby.html", context)
+        else:
+            raise Http404("Authentication failed")
 
     except ObjectDoesNotExist:
         return HttpResponseRedirect("/client/lobby/list")

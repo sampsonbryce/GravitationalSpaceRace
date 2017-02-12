@@ -2,10 +2,45 @@
 
 {% block title %}{{ lobby.name }}{% endblock %}
 
+{% block styles %}
+    <style>
+        .lobby-tiles > div{
+            margin: 20px 5px 0 5px;
+        }
+        .row-1{
+            background-color:lightgray;
+        }
+        .row-2{
+            background-color:darkgray;
+        }
+    </style>
+{% endblock %}
+
 {% block body %}
-    <div class="columns">
-        <div class="column is-6 is-offset-3 has-text-centered">
-            <h1>{{ lobby.name }}</h1>
+    <section class="hero is-light is-bold">
+        <div class="hero-body">
+            <div class="container">
+                <div class="columns">
+                    <div class="column">
+                        <h1 class="title">{{ lobby.name }}</h1>
+                    </div>
+                    <div class="column is-narrow">
+                        <a href="{% url 'client:lobby_leave' lobby.id %}" class="button is-primary is-outlined">Leave</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <div class="columns lobby-tiles">
+        <div class="column is-6 is-offset-2 has-text-centered box">
+            <h2 class="title">Players</h2>
+            {% for player in players %}
+                <p class="{% cycle "row-1" "row-2" %}">{{  player }}</p>
+            {% endfor %}
+        </div>
+        <div class="column is-2 box">
+            <p class="title">Created By: <span class="subtitle">{{ lobby.created_by }}</span></p>
+            <h3>Created Date: {{ lobby.created_date|date:"SHORT_DATETIME_FORMAT" }}</h3>
         </div>
     </div>
 {% endblock %}

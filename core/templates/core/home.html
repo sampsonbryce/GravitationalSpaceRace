@@ -7,6 +7,10 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.3.1/css/bulma.css" />
     <link rel="stylesheet" href="{% static 'core/css/main.css' %}" />
     <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous">
+    {% block stylesheets %}
+    {% endblock %}
+    {% block styles %}
+    {% endblock %}
 </head>
 <body>
 <nav class="nav">
@@ -43,12 +47,16 @@
         </a>
 
         <span class="nav-item">
-          <a class="button is-primary" href="{% url 'auth_login' %}">
-            <span class="icon">
-              <i class="fa fa-user"></i>
-            </span>
-            <span>Login</span>
-          </a>
+           {% if user.is_authenticated %}
+              <p>Welcome {{ user }}</p>
+           {% else %}
+               <a class="button is-primary" href="{% url 'auth_login' %}">
+                <span class="icon">
+                  <i class="fa fa-user"></i>
+                </span>
+                <span>Login</span>
+              </a>
+           {% endif %}
         </span>
     </div>
 </nav>

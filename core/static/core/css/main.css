@@ -1,3 +1,9 @@
 .accounts-form{
     margin-top: 50px;
 }
+
+.children-is-vertical-center{
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+}

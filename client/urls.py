@@ -8,5 +8,6 @@ urlpatterns = [
     url(r'^lobby/list$', views.lobby_list, name='lobby_list'),
     url(r'^lobby/create/$', views.lobby_create, name='lobby_create'),
     url(r'^lobby/join/([0-9]+)/$', views.lobby_join, name='lobby_join'),
+    url(r'^lobby/leave/([0-9]+)/$', views.lobby_leave, name='lobby_leave'),
     url(r'^lobby/([0-9]+)/$', views.lobby, name='lobby'),
 ]
