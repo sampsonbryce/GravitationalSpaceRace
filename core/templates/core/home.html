@@ -20,7 +20,7 @@
         <a class="nav-item" href="/">
             Home
         </a>
-        <a class="nav-item" href="/client/lobbies">
+        <a class="nav-item" href="{% url 'client:lobby_list' %}">
             Lobby
         </a>
     </div>
@@ -43,7 +43,7 @@
         </a>
 
         <span class="nav-item">
-          <a class="button is-primary" href="/accounts/login">
+          <a class="button is-primary" href="{% url 'auth_login' %}">
             <span class="icon">
               <i class="fa fa-user"></i>
             </span>

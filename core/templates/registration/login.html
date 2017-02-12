@@ -23,6 +23,6 @@
             {% endfor %}
             <button type="submit" class="button is-primary">Login</button>
         </form>
-        <span>Need an account? <a href="/accounts/register">Register</a></span>
+        <span>Need an account? <a href="{% url 'registration_register' %}">Register</a></span>
     </div>
 {% endblock %}

@@ -6,13 +6,19 @@
     <div class="columns">
         <div class="column is-6 is-offset-3 has-text-centered">
             <h1>Current Lobbies</h1>
-            <a href="create/" class="button is-primary">Create Lobby</a>
+            <a href="{% url 'client:lobby_create' %}" class="button is-primary">Create Lobby</a>
         </div>
     </div>
     <div class="columns">
         <div class="column is-6 is-offset-3 has-text-centered">
-            <p>No lobbies available</p>
+            {% if not lobbies %}
+                <p>No lobbies available</p>
+            {% else %}
+                {% for lobby in lobbies %}
+                    <p>{{ lobby.name }}</p>
+                {% endfor %}
+            {% endif %}
+
         </div>
-        {{ lobbies }}
     </div>
 {% endblock %}

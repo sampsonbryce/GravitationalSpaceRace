@@ -2,9 +2,11 @@ from django.conf.urls import url
 
 from . import views
 
+app_name = 'client'
 urlpatterns = [
     url(r'^$', views.index, name='index'),
-    url(r'^lobbies/$', views.lobbies, name='lobbies'),
-    url(r'^lobbies/create/$', views.createlobby, name='createlobby'),
-
+    url(r'^lobby/list$', views.lobby_list, name='lobby_list'),
+    url(r'^lobby/create/$', views.lobby_create, name='lobby_create'),
+    url(r'^lobby/join/([0-9]+)/$', views.lobby_join, name='lobby_join'),
+    url(r'^lobby/([0-9]+)/$', views.lobby, name='lobby'),
 ]
