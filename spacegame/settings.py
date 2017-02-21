@@ -27,7 +27,6 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
-
 # Application definition
 
 INSTALLED_APPS = [
@@ -37,9 +36,10 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'client.apps.ClientConfig',
-    'core.apps.CoreConfig',
-    'widget_tweaks'
+    'client',
+    'core',
+    'widget_tweaks',
+    'channels'
 ]
 
 MIDDLEWARE = [
@@ -87,6 +87,14 @@ DATABASES = {
     }
 }
 
+# Config for channels
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "asgiref.inmemory.ChannelLayer",
+        "ROUTING": "spacegame.routing.channel_routing",
+    },
+}
+
 
 # Password validation
 # https://docs.djangoproject.com/en/1.10/ref/settings/#auth-password-validators
@@ -126,4 +134,4 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
-LOGIN_REDIRECT_URL = '/client/lobbies/'
+LOGIN_REDIRECT_URL = '/client/lobby/list'

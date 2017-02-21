@@ -1,3 +1,11 @@
+
+// set up socket
+socket = new WebSocket("ws://" + window.location.host + "/client/");
+socket.onmessage = function(e) {
+        var position = e.data;
+        console.log('positon', position);
+    };
+
 //init all variables
 var width, height, renderer, scene, controls, camera, player;
 width = window.innerWidth;
@@ -125,37 +133,45 @@ function animate(){
 
 function update(){
     updateCamera();
+    updatePositions();
 }
 function updateCamera(){
 
     var delta = clock.getDelta(); // seconds.
-	var moveDistance = 200 * delta; // 200 pixels per second
+    var moveDistance = 200 * delta; // 200 pixels per second
     var direction = camera.getWorldDirection();
 
-	// move
-	if (input.forward){
+    // move
+    if (input.forward){
         console.log('going forward');
         player.position.add(direction.normalize().multiplyScalar(moveDistance));
     }
-	if (input.backward){
-	    console.log('going backward');
+    if (input.backward){
+        console.log('going backward');
         player.position.add((direction.normalize().multiplyScalar(-moveDistance)));
     }
-	if (input.left)
-	{
+    if (input.left)
+    {
         console.log('going left');
         player.position.add(new THREE.Vector3().crossVectors(vectorUp, direction).normalize().multiplyScalar(moveDistance));
         camera.position.add(new THREE.Vector3().crossVectors(vectorUp, direction).normalize().multiplyScalar(moveDistance));
-	}
-	if (input.right)
-	{
+    }
+    if (input.right)
+    {
         console.log('going right');
         player.position.add(new THREE.Vector3().crossVectors(direction, vectorUp).normalize().multiplyScalar(moveDistance));
         camera.position.add(new THREE.Vector3().crossVectors(direction, vectorUp).normalize().multiplyScalar(moveDistance));
-	}
+    }
 
     controls.target = player.position;
-	camera.lookAt( player.position );
+    camera.lookAt( player.position );
+}
+
+function updatePositions(){
+    if (socket.readyState == WebSocket.OPEN){
+        // console.log('sending position', player.position)
+        socket.send([player_name, JSON.stringify(player.position)]);
+    }
 }
 
 function move(event){

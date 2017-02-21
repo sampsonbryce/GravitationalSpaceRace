@@ -38,9 +38,42 @@
                 <p class="{% cycle "row-1" "row-2" %}">{{  player }}</p>
             {% endfor %}
         </div>
-        <div class="column is-2 box">
-            <p class="title">Created By: <span class="subtitle">{{ lobby.created_by }}</span></p>
-            <h3>Created Date: {{ lobby.created_date|date:"SHORT_DATETIME_FORMAT" }}</h3>
+        <div class="column is-2">
+            <div class="column is-12 box">
+                <p class="title">Created By: <span class="subtitle">{{ lobby.created_by }}</span></p>
+                <h3>Created Date: {{ lobby.created_date|date:"SHORT_DATETIME_FORMAT" }}</h3>
+            </div>
+
+            <div class="columns is-multiline is-12 box">
+                <div class="column is-12" id="messages">
+                </div>
+                <div class="column is-12">
+                    <input type="text" id="message-input" class="input">
+                </div>
+            </div>
         </div>
     </div>
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        $(function(){
+            // Note that the path doesn't matter right now; any WebSocket
+            // connection gets bumped over to WebSocket consumers
+            socket = new WebSocket("ws://" + window.location.host + "/chat/");
+            socket.onmessage = function(e) {
+                console.log('e', e);
+                var el = $('<p></p>').text(e.data).addClass('message');
+                $('#messages').append(el);
+            };
+
+            $('#message-input').keyup(function(e){
+                if(e.keyCode == 13){
+                    if (socket.readyState == WebSocket.OPEN) {
+                        socket.send($(this).val());
+                    }
+                }
+            });
+        });
+    </script>
 {% endblock %}

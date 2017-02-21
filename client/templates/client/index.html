@@ -7,7 +7,17 @@
 src="https://code.jquery.com/jquery-3.1.1.min.js"
 integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
 crossorigin="anonymous"></script>
+<script>
+    var player_name = '{{ request.user.username }}';
+    var player_positions = {
+    {% for map in maps %}
+        {{ map.user.username }}: {'x': 0, 'y':0, 'z':0},
+    {% endfor %}
+    }
+    console.log('player positions', player_positions);
+</script>
 <script src="{% static 'client/js/three.min.js' %}"></script>
 <script src="{% static 'client/js/lib/OrbitControls.js' %}"></script>
 <script src="{% static 'client/js/Planet.js' %}"></script>
 <script src="{% static 'client/js/main.js' %}"></script>
+

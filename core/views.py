@@ -5,4 +5,3 @@ def home(request):
     return render(request, 'core/home.html', {})
 
 
-

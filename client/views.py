@@ -10,7 +10,12 @@ from .forms import CreateLobbyForm
 
 @login_required(login_url='/accounts/login/')
 def index(request):
-    return render(request, 'client/index.html', {})
+    lobby_map = LobbyUserMap.objects.get(user=request.user)
+    l_maps = LobbyUserMap.objects.filter(lobby=lobby_map.lobby)
+    context = {
+        'maps': l_maps
+    }
+    return render(request, 'client/index.html', context)
 
 
 @login_required(login_url='/accounts/login/')
