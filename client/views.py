@@ -36,9 +36,7 @@ def lobby_create(request):
         form = CreateLobbyForm(request.POST)
 
         if request.user.is_authenticated() and form.is_valid():
-            instance = form.save(commit=False)
-            instance.created_by = request.user
-            instance.save()
+            form.save()
             return HttpResponseRedirect("/client/lobby/list")
     else:
         form = CreateLobbyForm()

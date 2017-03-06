@@ -1,7 +1,8 @@
 from channels import Group
 from channels.auth import channel_session_user, channel_session_user_from_http
+from channels.generic.websockets import JsonWebsocketConsumer
 from client.models import *
-
+import json
 
 # Connected to websocket.connect
 @channel_session_user_from_http
@@ -15,14 +16,16 @@ def ws_add(message):
 @channel_session_user
 def ws_message(message):
     l_map = LobbyUserMap.objects.get(user=message.user)
-    text = message.content['text'].split(',')
-    print('text', text)
-    name = text[0]
-    position = text[1]
-    print(name, position)
+    text = message.content['text']
+    name = text[:text.index(',')]
+    position = text[text.index(',')+1:]
+    position_data = json.loads(str(position))
+    print(name, position_data)
     Group("{0}-client".format(l_map.lobby.id)).send({
-        "name": name,
-        "position": position,
+        "text": json.dumps({
+            "name": name,
+            "position": position,
+        })
     })
 
 

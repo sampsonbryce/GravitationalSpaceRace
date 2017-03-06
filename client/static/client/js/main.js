@@ -1,10 +1,9 @@
+// list of all players other than you
+var playerPositions = {};
 
 // set up socket
-socket = new WebSocket("ws://" + window.location.host + "/client/");
-socket.onmessage = function(e) {
-        var position = e.data;
-        console.log('positon', position);
-    };
+var socket;
+socketConnect();
 
 //init all variables
 var width, height, renderer, scene, controls, camera, player;
@@ -13,7 +12,8 @@ height = window.innerHeight;
 var aspect = width/height;
 var clock = new THREE.Clock();
 var vectorUp = new THREE.Vector3(0, 1, 0);
-
+var positionUpdateFrameCount = 20;
+var frame = 0;
 
 var input = {
     forward: false,
@@ -67,7 +67,7 @@ function init(){
     });
 
     // create player
-    player = new THREE.Mesh(new THREE.SphereGeometry(50, 16, 16), redLambertMaterial);
+    player = new Player(player_name, new THREE.Mesh(new THREE.SphereGeometry(50, 16, 16), redLambertMaterial));
 
     // create point light
     const pointLight = new THREE.PointLight(0xFFFFFF);
@@ -99,7 +99,7 @@ function init(){
     // add everything to scene
     scene.add(planet.mesh);
     scene.add(camera);
-    scene.add(player);
+    scene.add(player.mesh);
     scene.add(pointLight);
     scene.add(ambientLight);
     scene.add(ground);
@@ -143,34 +143,37 @@ function updateCamera(){
 
     // move
     if (input.forward){
-        console.log('going forward');
-        player.position.add(direction.normalize().multiplyScalar(moveDistance));
+        player.moveForward(moveDistance, direction);
     }
     if (input.backward){
-        console.log('going backward');
-        player.position.add((direction.normalize().multiplyScalar(-moveDistance)));
+        player.moveBackward(moveDistance, direction);
     }
     if (input.left)
     {
-        console.log('going left');
-        player.position.add(new THREE.Vector3().crossVectors(vectorUp, direction).normalize().multiplyScalar(moveDistance));
-        camera.position.add(new THREE.Vector3().crossVectors(vectorUp, direction).normalize().multiplyScalar(moveDistance));
+        player.moveLeft(moveDistance, direction);
     }
     if (input.right)
     {
-        console.log('going right');
-        player.position.add(new THREE.Vector3().crossVectors(direction, vectorUp).normalize().multiplyScalar(moveDistance));
-        camera.position.add(new THREE.Vector3().crossVectors(direction, vectorUp).normalize().multiplyScalar(moveDistance));
+        player.moveRight(moveDistance, direction);
     }
 
-    controls.target = player.position;
-    camera.lookAt( player.position );
+    controls.target = player.mesh.position;
+    camera.lookAt( player.mesh.position );
 }
 
 function updatePositions(){
-    if (socket.readyState == WebSocket.OPEN){
-        // console.log('sending position', player.position)
-        socket.send([player_name, JSON.stringify(player.position)]);
+    if(frame > positionUpdateFrameCount){
+        frame = 0;
+        if (socket.readyState == WebSocket.OPEN){
+            console.log('sending position', player.mesh.position)
+            socket.send([player_name, JSON.stringify(player.mesh.position)]);
+        }
+        else{
+            console.log('websocket closed');
+        }
+    }
+    else{
+        frame += 1;
     }
 }
 
@@ -215,4 +218,36 @@ function unmove(event){
 function createPlanet(){
     var planet = new Planet(1234);
     return planet;
+}
+
+function socketConnect(){
+    socket = new WebSocket("ws://" + window.location.host + "/client/");
+    socket.onmessage = function(e) {
+        var data = JSON.parse(e.data);
+        var name = data['name'];
+
+        // if we got our own data
+        if(name == player.name){
+            return;
+        }
+
+        var position = JSON.parse(data['position']);
+        console.log('name', name);
+        console.log('positon', position);
+        if(playerPositions[name]){
+            console.log('updating position');
+            playerPositions[name].updatePosition(position);
+        }
+        else{
+            console.log('creating player');
+            var new_plyr = new Player(name);
+            playerPositions[name] = new_plyr;
+            playerPositions[name].updatePosition(position);
+            scene.add(new_plyr.mesh);
+        }
+    };
+
+    socket.onclose = function(){
+        setTimeout(socketConnect, 1000);
+    };
 }
