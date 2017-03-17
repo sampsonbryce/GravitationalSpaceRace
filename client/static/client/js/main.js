@@ -1,3 +1,43 @@
+// Pointer Lock
+var blocker = document.getElementById( 'blocker' );
+var instructions = document.getElementById( 'instructions' );
+// http://www.html5rocks.com/en/tutorials/pointerlock/intro/
+var havePointerLock = 'pointerLockElement' in document || 'mozPointerLockElement' in document || 'webkitPointerLockElement' in document;
+if ( havePointerLock ) {
+    var element = document.body;
+    var pointerlockchange = function ( event ) {
+        if ( document.pointerLockElement === element || document.mozPointerLockElement === element || document.webkitPointerLockElement === element ) {
+            controlsEnabled = true;
+            controls.enabled = true;
+            blocker.style.display = 'none';
+        } else {
+            controls.enabled = false;
+            blocker.style.display = '-webkit-box';
+            blocker.style.display = '-moz-box';
+            blocker.style.display = 'box';
+            instructions.style.display = '';
+        }
+    };
+    var pointerlockerror = function ( event ) {
+        instructions.style.display = '';
+    };
+    // Hook pointer lock state change events
+    document.addEventListener( 'pointerlockchange', pointerlockchange, false );
+    document.addEventListener( 'mozpointerlockchange', pointerlockchange, false );
+    document.addEventListener( 'webkitpointerlockchange', pointerlockchange, false );
+    document.addEventListener( 'pointerlockerror', pointerlockerror, false );
+    document.addEventListener( 'mozpointerlockerror', pointerlockerror, false );
+    document.addEventListener( 'webkitpointerlockerror', pointerlockerror, false );
+    instructions.addEventListener( 'click', function ( event ) {
+        instructions.style.display = 'none';
+        // Ask the browser to lock the pointer
+        element.requestPointerLock = element.requestPointerLock || element.mozRequestPointerLock || element.webkitRequestPointerLock;
+        element.requestPointerLock();
+    }, false );
+} else {
+    instructions.innerHTML = 'Your browser doesn\'t seem to support Pointer Lock API';
+}
+
 // list of all players other than you
 var playerPositions = {};
 
@@ -6,7 +46,7 @@ var socket;
 socketConnect();
 
 //init all variables
-var width, height, renderer, scene, controls, camera, player;
+var width, height, renderer, scene, controls, camera, player, skyBox;
 width = window.innerWidth;
 height = window.innerHeight;
 var aspect = width/height;
@@ -24,7 +64,7 @@ var input = {
 
 const VIEW_ANGLE = 70;
 const NEAR = 1;
-const FAR = 1000;
+const FAR = 100000;
 
 const container = $('#container'); // get container div
 
@@ -35,11 +75,11 @@ function init(){
 
     //scene
     scene = new THREE.Scene();
-    scene.fog = new THREE.FogExp2( 0xcccccc, 0.00025 );
+    // scene.fog = new THREE.FogExp2( 0xcccccc, 0.00025 );
 
     // renderer
     renderer = new THREE.WebGLRenderer();
-    renderer.setClearColor( scene.fog.color );
+    // renderer.setClearColor( scene.fog.color );
     renderer.setPixelRatio( window.devicePixelRatio );
     renderer.setSize(width, height);
 
@@ -94,6 +134,23 @@ function init(){
     // note that because the ground does not cast a shadow, .castShadow is left false
     ground.receiveShadow = true;
 
+    // Space Skybox
+    var geometry = new THREE.SphereGeometry(6000, 60, 40);
+    var uniforms = {
+        texture: { type: 't', value: new THREE.TextureLoader().load('/static/client/textures/ESO_Milky_Way.jpg') }
+    };
+
+    var material = new THREE.ShaderMaterial( {
+        uniforms:       uniforms,
+        vertexShader:   document.getElementById('sky-vertex').textContent,
+        fragmentShader: document.getElementById('sky-fragment').textContent
+    });
+
+    skyBox = new THREE.Mesh(geometry, material);
+    skyBox.scale.set(-1, 1, 1);
+    skyBox.rotation.order = 'XZY';
+    skyBox.renderDepth = 1000.0;
+
     var planet = createPlanet();
 
     // add everything to scene
@@ -102,7 +159,8 @@ function init(){
     scene.add(player.mesh);
     scene.add(pointLight);
     scene.add(ambientLight);
-    scene.add(ground);
+    // scene.add(ground);
+    scene.add(skyBox);
 
     // add dom element to container
     container.append(renderer.domElement);
