@@ -1,3 +1,35 @@
+// list of all players other than you
+var playerPositions = {};
+
+// set up socket
+var socket;
+socketConnect();
+
+//init all variables
+var width, height, renderer, scene, controls, camera, player, skyBox, controlsEnabled;
+window.camera = camera;
+width = window.innerWidth;
+height = window.innerHeight;
+var aspect = width/height;
+var clock = new THREE.Clock();
+var vectorUp = new THREE.Vector3(0, 1, 0);
+var positionUpdateFrameCount = 20;
+var frame = 0;
+var velocity = new THREE.Vector3();
+
+var input = {
+    forward: false,
+    backward: false,
+    left: false,
+    right: false
+};
+
+const VIEW_ANGLE = 70;
+const NEAR = 1;
+const FAR = 100000;
+
+const container = $('#container'); // get container div
+
 // Pointer Lock
 var blocker = document.getElementById( 'blocker' );
 var instructions = document.getElementById( 'instructions' );
@@ -6,6 +38,7 @@ var havePointerLock = 'pointerLockElement' in document || 'mozPointerLockElement
 if ( havePointerLock ) {
     var element = document.body;
     var pointerlockchange = function ( event ) {
+        console.log('pointer lock change');
         if ( document.pointerLockElement === element || document.mozPointerLockElement === element || document.webkitPointerLockElement === element ) {
             controlsEnabled = true;
             controls.enabled = true;
@@ -38,36 +71,6 @@ if ( havePointerLock ) {
     instructions.innerHTML = 'Your browser doesn\'t seem to support Pointer Lock API';
 }
 
-// list of all players other than you
-var playerPositions = {};
-
-// set up socket
-var socket;
-socketConnect();
-
-//init all variables
-var width, height, renderer, scene, controls, camera, player, skyBox;
-width = window.innerWidth;
-height = window.innerHeight;
-var aspect = width/height;
-var clock = new THREE.Clock();
-var vectorUp = new THREE.Vector3(0, 1, 0);
-var positionUpdateFrameCount = 20;
-var frame = 0;
-
-var input = {
-    forward: false,
-    backward: false,
-    left: false,
-    right: false
-};
-
-const VIEW_ANGLE = 70;
-const NEAR = 1;
-const FAR = 100000;
-
-const container = $('#container'); // get container div
-
 init(); // initialize environment
 animate(); // start animation
 
@@ -95,12 +98,13 @@ function init(){
     camera.position.z = 500;
 
     //add controls
-    controls = new THREE.OrbitControls(camera, renderer.domElement);
-    controls.enableZoom = false;
-    controls.minDistance = 500;
-    controls.maxDistance = 500;
+    // controls = new THREE.OrbitControls(camera, renderer.domElement);
+    controls = new THREE.PointerLockOrbit(camera, null);
+    // controls.enableZoom = false;
+    // controls.minDistance = 500;
+    // controls.maxDistance = 500;
 
-    controls.addEventListener("change", render);
+    // controls.addEventListener("change", render);
 
     const redLambertMaterial = new THREE.MeshLambertMaterial({
         color: 0xCC0000
@@ -108,6 +112,7 @@ function init(){
 
     // create player
     player = new Player(player_name, new THREE.Mesh(new THREE.SphereGeometry(50, 16, 16), redLambertMaterial));
+    controls.target = player.mesh;
 
     // create point light
     const pointLight = new THREE.PointLight(0xFFFFFF);
@@ -161,6 +166,7 @@ function init(){
     scene.add(ambientLight);
     // scene.add(ground);
     scene.add(skyBox);
+    // scene.add(controls.getObject());
 
     // add dom element to container
     container.append(renderer.domElement);
@@ -183,7 +189,7 @@ function render(){
 }
 
 function animate(){
-    controls.update();
+    // controls.update();
     requestAnimationFrame(animate);
     update();
     render();
@@ -200,30 +206,30 @@ function updateCamera(){
     var direction = camera.getWorldDirection();
 
     // move
-    if (input.forward){
-        player.moveForward(moveDistance, direction);
+    if(controlsEnabled){
+        // move player
+        if (input.forward){
+            controls.moveForward(moveDistance, direction);
+        }
+        if (input.backward){
+            controls.moveBackward(moveDistance, direction);
+        }
+        if (input.left)
+        {
+            controls.moveLeft(moveDistance, direction);
+        }
+        if (input.right)
+        {
+            controls.moveRight(moveDistance, direction);
+        }
     }
-    if (input.backward){
-        player.moveBackward(moveDistance, direction);
-    }
-    if (input.left)
-    {
-        player.moveLeft(moveDistance, direction);
-    }
-    if (input.right)
-    {
-        player.moveRight(moveDistance, direction);
-    }
-
-    controls.target = player.mesh.position;
-    camera.lookAt( player.mesh.position );
 }
 
 function updatePositions(){
     if(frame > positionUpdateFrameCount){
         frame = 0;
         if (socket.readyState == WebSocket.OPEN){
-            console.log('sending position', player.mesh.position)
+            // console.log('sending position', player.mesh.position)
             socket.send([player_name, JSON.stringify(player.mesh.position)]);
         }
         else{

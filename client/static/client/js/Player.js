@@ -22,17 +22,4 @@ Player.prototype.updatePosition = function(position) {
     this.mesh.position.z = position.z;
 };
 
-Player.prototype.moveForward = function(distance, direction) {
-    this.mesh.position.add(direction.normalize().multiplyScalar(distance));
-};
-Player.prototype.moveBackward = function(distance, direction) {
-    this.mesh.position.add((direction.normalize().multiplyScalar(-distance)));
-};
-Player.prototype.moveLeft = function(distance, direction) {
-    this.mesh.position.add(new THREE.Vector3().crossVectors(this.vectorUp, direction).normalize().multiplyScalar(distance));
-    // camera.position.add(new THREE.Vector3().crossVectors(vectorUp, direction).normalize().multiplyScalar(distance));
-};
-Player.prototype.moveRight = function(distance, direction) {
-    this.mesh.position.add(new THREE.Vector3().crossVectors(direction, this.vectorUp).normalize().multiplyScalar(distance));
-    // camera.position.add(new THREE.Vector3().crossVectors(direction, vectorUp).normalize().multiplyScalar(moveDistance));
-};
+
