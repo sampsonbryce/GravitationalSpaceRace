@@ -80,6 +80,7 @@ THREE.OrbitControls = function ( object, domElement ) {
 	this.position0 = this.object.position.clone();
 	this.zoom0 = this.object.zoom;
 
+    document.addEventListener( 'mousemove', handleMouseMoveRotate, false );
 	//
 	// public methods
 	//
@@ -130,14 +131,14 @@ THREE.OrbitControls = function ( object, domElement ) {
 			offset.copy( position ).sub( scope.target );
 
 			// rotate offset to "y-axis-is-up" space
-			offset.applyQuaternion( quat );
+			// offset.applyQuaternion( quat );
 
 			// angle from z-axis around y-axis
-			spherical.setFromVector3( offset );
+			// spherical.setFromVector3( offset );
 
 			if ( scope.autoRotate && state === STATE.NONE ) {
 
-				rotateLeft( getAutoRotationAngle() );
+				// rotateLeft( getAutoRotationAngle() );
 
 			}
 
@@ -159,7 +160,8 @@ THREE.OrbitControls = function ( object, domElement ) {
 			spherical.radius = Math.max( scope.minDistance, Math.min( scope.maxDistance, spherical.radius ) );
 
 			// move target to panned location
-			scope.target.add( panOffset );
+			// console.log('target', scope.target);
+			// scope.target.add( panOffset );
 
 			offset.setFromSpherical( spherical );
 
@@ -429,23 +431,30 @@ THREE.OrbitControls = function ( object, domElement ) {
 	}
 
 	function handleMouseMoveRotate( event ) {
-
+		if(!scope.enabled){return}
 		//console.log( 'handleMouseMoveRotate' );
 
-		rotateEnd.set( event.clientX, event.clientY );
-		rotateDelta.subVectors( rotateEnd, rotateStart );
+		// rotateEnd.set( event.clientX, event.clientY );
+		// rotateDelta.subVectors( rotateEnd, rotateStart );
 
 		var element = scope.domElement === document ? scope.domElement.body : scope.domElement;
+		var movementX = event.movementX || event.mozMovementX || event.webkitMovementX || 0;
+		var movementY = event.movementY || event.mozMovementY || event.webkitMovementY || 0;
 
+        rotateDelta.x = movementX;
+        rotateDelta.y = movementY;
+        console.log('movement', movementX, movementY);
 		// rotating across whole screen goes 360 degrees around
 		rotateLeft( 2 * Math.PI * rotateDelta.x / element.clientWidth * scope.rotateSpeed );
 
 		// rotating up and down along whole screen attempts to go 360, but limited to 180
 		rotateUp( 2 * Math.PI * rotateDelta.y / element.clientHeight * scope.rotateSpeed );
 
-		rotateStart.copy( rotateEnd );
+        console.log('rotated');
+		// rotateStart.copy( rotateEnd );
 
 		scope.update();
+        console.log('updated');
 
 	}
 

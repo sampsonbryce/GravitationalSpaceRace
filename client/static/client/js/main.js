@@ -98,13 +98,14 @@ function init(){
     camera.position.z = 500;
 
     //add controls
-    // controls = new THREE.OrbitControls(camera, renderer.domElement);
-    controls = new THREE.PointerLockOrbit(camera, null);
-    // controls.enableZoom = false;
-    // controls.minDistance = 500;
-    // controls.maxDistance = 500;
+    controls = new THREE.OrbitControls(camera, renderer.domElement);
+    // controls = new THREE.PointerLockOrbit(camera, null);
+    controls.enableZoom = false;
+    controls.minDistance = 500;
+    controls.maxDistance = 500;
 
-    // controls.addEventListener("change", render);
+
+    controls.addEventListener("change", render);
 
     const redLambertMaterial = new THREE.MeshLambertMaterial({
         color: 0xCC0000
@@ -199,6 +200,8 @@ function update(){
     updateCamera();
     updatePositions();
 }
+
+
 function updateCamera(){
 
     var delta = clock.getDelta(); // seconds.
@@ -209,18 +212,18 @@ function updateCamera(){
     if(controlsEnabled){
         // move player
         if (input.forward){
-            controls.moveForward(moveDistance, direction);
+            moveForward(moveDistance, direction);
         }
         if (input.backward){
-            controls.moveBackward(moveDistance, direction);
+            moveBackward(moveDistance, direction);
         }
         if (input.left)
         {
-            controls.moveLeft(moveDistance, direction);
+            moveLeft(moveDistance, direction);
         }
         if (input.right)
         {
-            controls.moveRight(moveDistance, direction);
+            moveRight(moveDistance, direction);
         }
     }
 }
@@ -278,6 +281,24 @@ function unmove(event){
             return;
     }
 }
+
+function moveForward(distance, direction) {
+    	player.mesh.position.add(direction.normalize().multiplyScalar(distance));
+        camera.position.add(direction.normalize().multiplyScalar(distance));
+    };
+function moveBackward(distance, direction) {
+        player.mesh.position.add((direction.normalize().multiplyScalar(-distance)));
+        camera.position.add((direction.normalize().multiplyScalar(distance)));
+    };
+function moveLeft(distance, direction) {
+        player.mesh.position.add(new THREE.Vector3().crossVectors(vectorUp, direction).normalize().multiplyScalar(distance));
+        this.camera.position.add(new THREE.Vector3().crossVectors(vectorUp, direction).normalize().multiplyScalar(distance));
+    };
+function moveRight(distance, direction) {
+        player.mesh.position.add(new THREE.Vector3().crossVectors(direction, vectorUp).normalize().multiplyScalar(distance));
+        camera.position.add(new THREE.Vector3().crossVectors(direction, vectorUp).normalize().multiplyScalar(distance));
+    };
+
 
 function createPlanet(){
     var planet = new Planet(1234);

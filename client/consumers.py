@@ -24,7 +24,7 @@ def ws_message(message):
     Group("{0}-client".format(l_map.lobby.id)).send({
         "text": json.dumps({
             "name": name,
-            "position": position,
+            "position": position
         })
     })
 

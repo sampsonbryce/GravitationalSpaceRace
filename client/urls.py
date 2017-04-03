@@ -4,7 +4,7 @@ from . import views
 
 app_name = 'client'
 urlpatterns = [
-    url(r'^$', views.index, name='index'),
+    url(r'^$', views.game, name='game'),
     url(r'^lobby/list$', views.lobby_list, name='lobby_list'),
     url(r'^lobby/create/$', views.lobby_create, name='lobby_create'),
     url(r'^lobby/join/([0-9]+)/$', views.lobby_join, name='lobby_join'),

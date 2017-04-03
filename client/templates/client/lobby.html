@@ -42,6 +42,9 @@
             <div class="column is-12 box">
                 <p class="title">Created By: <span class="subtitle">{{ lobby.created_by }}</span></p>
                 <h3>Created Date: {{ lobby.created_date|date:"SHORT_DATETIME_FORMAT" }}</h3>
+                {% if is_admin %}
+                    <a href="client/lobby/start" class="button">Start Game</a>
+                {% endif %}
             </div>
 
             <div class="columns is-multiline is-12 box">
@@ -60,7 +63,7 @@
         $(function(){
             // Note that the path doesn't matter right now; any WebSocket
             // connection gets bumped over to WebSocket consumers
-            socket = new WebSocket("ws://" + window.location.host + "/chat/");
+            socket = new WebSocket("ws://" + window.location.host + "/lobby_chat/");
             socket.onmessage = function(e) {
                 console.log('e', e);
                 var el = $('<p></p>').text(e.data).addClass('message');
