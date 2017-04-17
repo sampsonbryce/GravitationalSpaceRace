@@ -8,11 +8,11 @@ class CreateLobbyForm(ModelForm):
         model = Lobby
         fields = ['name']
 
-    def save(self, commit=True):
-        lobby = super(Lobby, self).save(commit)
-        if commit:
-            lobby.save()
-
-        return lobby
+    # def save(self, commit=True):
+    #     lobby = Lobby.save(commit)
+    #     if commit:
+    #         lobby.save()
+    #
+    #     return lobby
 
 

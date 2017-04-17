@@ -306,7 +306,7 @@ function createPlanet(){
 }
 
 function socketConnect(){
-    socket = new WebSocket("ws://" + window.location.host + "/client/");
+    socket = new WebSocket("ws://" + window.location.host + "/lobby/game");
     socket.onmessage = function(e) {
         var data = JSON.parse(e.data);
         var name = data['name'];

@@ -1,4 +1,5 @@
 {% extends 'core/home.html' %}
+{% load static %}
 
 {% block title %}{{ lobby.name }}{% endblock %}
 
@@ -43,7 +44,7 @@
                 <p class="title">Created By: <span class="subtitle">{{ lobby.created_by }}</span></p>
                 <h3>Created Date: {{ lobby.created_date|date:"SHORT_DATETIME_FORMAT" }}</h3>
                 {% if is_admin %}
-                    <a href="client/lobby/start" class="button">Start Game</a>
+                    <a href="{% url 'client:lobby_start' %}" class="button" id="start-button">Start Game</a>
                 {% endif %}
             </div>
 
@@ -59,24 +60,6 @@
 {% endblock %}
 
 {% block scripts %}
-    <script>
-        $(function(){
-            // Note that the path doesn't matter right now; any WebSocket
-            // connection gets bumped over to WebSocket consumers
-            socket = new WebSocket("ws://" + window.location.host + "/lobby_chat/");
-            socket.onmessage = function(e) {
-                console.log('e', e);
-                var el = $('<p></p>').text(e.data).addClass('message');
-                $('#messages').append(el);
-            };
-
-            $('#message-input').keyup(function(e){
-                if(e.keyCode == 13){
-                    if (socket.readyState == WebSocket.OPEN) {
-                        socket.send($(this).val());
-                    }
-                }
-            });
-        });
-    </script>
+    <script src="{% static "client/js/sockets.js" %}"></script>
+    <script src="{% static "client/js/lobby.js" %}"></script>
 {% endblock %}

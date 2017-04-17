@@ -7,6 +7,8 @@ from .models import Lobby, LobbyUserMap
 from django.contrib.auth.models import User
 from .forms import CreateLobbyForm
 
+from websocket import create_connection
+
 
 @login_required(login_url='/accounts/login/')
 def game(request):
@@ -18,19 +20,31 @@ def game(request):
     return render(request, 'client/game.html', context)
 
 @login_required(login_url='/accounts/login/')
-def start(request):
+def lobby_start(request):
 
     lobby_map = LobbyUserMap.objects.get(user=request.user)
-    lobby = Lobby(lobby=lobby_map.lobby)
+    lobby = Lobby.objects.get(id=lobby_map.lobby.id)
+    print('in start', lobby)
 
     if lobby.started:
         # redirect to game if already started
-        return HttpResponseRedirect('client/game')
+        print('redirecting')
+        return redirect('client:game')
     elif lobby_map.is_admin:
+        print('you are admin')
         lobby.started = True
-        lobby.commit()
+        lobby.save()
 
-    return HttpResponseRedirect('client/game')
+        # send ws request
+        # ws = create_connection("ws://localhost:8000/lobby_start/")
+        # print('sending ws request')
+        # ws.send("Hello World")
+        # result = ws.recv()
+        # print('result:', result)
+        # ws.close()
+
+    print('redirecting')
+    return redirect('client:game')
 
 
 @login_required(login_url='/accounts/login/')
@@ -50,11 +64,18 @@ def lobby_create(request):
         form = CreateLobbyForm(request.POST)
 
         if request.user.is_authenticated() and form.is_valid():
-            lobby = form.save()
+            lobby = form.save(commit=False)
+            lobby.created_by = request.user
+            lobby.save()
+
+
+            # if user is in lobby already
+            LobbyUserMap.objects.filter(user=request.user).delete() # delete lobby map
 
             # create map for user
-            map = LobbyUserMap(is_admin=True, user = request.user, lobby=lobby)
-            map.commit()
+            map = LobbyUserMap(is_admin=True, user=request.user, lobby=lobby)
+            print('map:', map.is_admin, )
+            map.save()
 
             return HttpResponseRedirect("/client/lobby/join/{0}".format(lobby.id))
     else:
@@ -66,11 +87,27 @@ def lobby_create(request):
 @login_required(login_url='/accounts/login/')
 def lobby_join(request, lobby_id):
     if request.user.is_authenticated():
+
         # remove all current lobby maps for user
-        LobbyUserMap.objects.filter(user=request.user).delete()
+        try:
+            map = LobbyUserMap.objects.filter(user=request.user)
+            print('MAP', map)
+            print('----------------------MAP---------------------:', map.get(), map.count())
+            if map.get().lobby.id != lobby_id:
+                map.delete()
+        except LobbyUserMap.DoesNotExist as e:
+            print('no maps', e)
+
+        # make admin if only person in lobby
+        is_admin = False
+        try:
+            maps = LobbyUserMap.objects.filter(lobby=lobby_id)
+            maps.get()
+        except LobbyUserMap.DoesNotExist:
+            is_admin = True
 
         # add lobby map
-        model = LobbyUserMap(user=request.user, lobby=Lobby.objects.get(id=lobby_id))
+        model = LobbyUserMap(user=request.user, lobby=Lobby.objects.get(id=lobby_id), is_admin=is_admin)
         model.save()
         return HttpResponseRedirect("/client/lobby/{0}".format(lobby_id))
 
