@@ -2,12 +2,27 @@ from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpResponseRedirect, Http404
 from django.db.models import Count
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from .models import Lobby, LobbyUserMap
 from django.contrib.auth.models import User
 from .forms import CreateLobbyForm
+from django.contrib import messages
+import re
 
-from websocket import create_connection
+def lobby_navbar(request):
+    context = {}
+
+    map = LobbyUserMap.objects.filter(user=request.user)
+    if map.count() > 0:
+        lobby = map.get().lobby
+        context["display_lobby_navbar"] = True
+        context["lobby"] = lobby
+
+    print("full path:", request.get_full_path())
+    if re.match(r'^/client/lobby/[0-9]+/$', request.get_full_path()) is not None:
+        context["display_lobby_navbar"] = False
+
+    return context
 
 
 @login_required(login_url='/accounts/login/')
@@ -21,41 +36,46 @@ def game(request):
 
 @login_required(login_url='/accounts/login/')
 def lobby_start(request):
-
     lobby_map = LobbyUserMap.objects.get(user=request.user)
     lobby = Lobby.objects.get(id=lobby_map.lobby.id)
-    print('in start', lobby)
 
     if lobby.started:
         # redirect to game if already started
-        print('redirecting')
         return redirect('client:game')
     elif lobby_map.is_admin:
-        print('you are admin')
         lobby.started = True
         lobby.save()
 
-        # send ws request
-        # ws = create_connection("ws://localhost:8000/lobby_start/")
-        # print('sending ws request')
-        # ws.send("Hello World")
-        # result = ws.recv()
-        # print('result:', result)
-        # ws.close()
-
-    print('redirecting')
     return redirect('client:game')
 
 
 @login_required(login_url='/accounts/login/')
 def lobby_list(request):
     # get lobbies and render view for lobbies
+    lobbies = []
     try:
-        lobbies = Lobby.objects.annotate(player_count=Count('lobbyusermap__user'))
+        lobbies_list = Lobby.objects.annotate(player_count=Count('lobbyusermap__user'))
+        for lobby in lobbies_list:
+            if lobby.player_count == 0:
+                LobbyUserMap.objects.filter(lobby=lobby).delete()
+                lobby.delete()
+            else:
+                lobbies.append(lobby)
     except Lobby.DoesNotExist:
-        lobbies = []
+        pass
 
-    return render(request, 'client/lobby_list.html', {'lobbies': lobbies})
+    map = LobbyUserMap.objects.filter(user=request.user)
+    if map.count() > 0:
+        my_lobby = map.get().lobby.id
+    else:
+        my_lobby = -1
+
+    context = {
+        'lobbies': lobbies,
+        'my_lobby': my_lobby
+    }
+
+    return render(request, 'client/lobby_list.html', context)
 
 
 @login_required(login_url='/accounts/login/')
@@ -74,7 +94,6 @@ def lobby_create(request):
 
             # create map for user
             map = LobbyUserMap(is_admin=True, user=request.user, lobby=lobby)
-            print('map:', map.is_admin, )
             map.save()
 
             return HttpResponseRedirect("/client/lobby/join/{0}".format(lobby.id))
@@ -83,20 +102,28 @@ def lobby_create(request):
 
     return render(request, 'client/lobby_create.html', {'form': form})
 
-
 @login_required(login_url='/accounts/login/')
 def lobby_join(request, lobby_id):
     if request.user.is_authenticated():
+        lobby = get_object_or_404(Lobby, id=lobby_id)
 
-        # remove all current lobby maps for user
-        try:
-            map = LobbyUserMap.objects.filter(user=request.user)
-            print('MAP', map)
-            print('----------------------MAP---------------------:', map.get(), map.count())
+        map = LobbyUserMap.objects.filter(user=request.user)
+        if lobby.started:
+            if map.count() == 0:
+                print("No maps, redirecting")
+                messages.error(request, "Cannot join a lobby where the game has started, unless you were already in lobby")
+                return HttpResponseRedirect("/client/lobby/list")
+            else:
+                if map.get().lobby.id != lobby_id:
+                    print("Not in lobby, redirecting")
+                    messages.error(request, "Cannot join a lobby where the game has started, unless you were already in lobby")
+                    return HttpResponseRedirect("/client/lobby/list")
+                else:
+                    return HttpResponseRedirect("/client")
+        else:
+            # remove all current lobby maps for user
             if map.get().lobby.id != lobby_id:
                 map.delete()
-        except LobbyUserMap.DoesNotExist as e:
-            print('no maps', e)
 
         # make admin if only person in lobby
         is_admin = False

@@ -65,6 +65,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'client.views.lobby_navbar',
             ],
         },
     },
@@ -135,3 +136,5 @@ USE_TZ = True
 STATIC_URL = '/static/'
 
 LOGIN_REDIRECT_URL = '/client/lobby/list'
+
+MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'

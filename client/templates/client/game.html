@@ -1,14 +1,33 @@
 {% load static %}
 <link rel="stylesheet" href="{% static 'client/css/main.css' %}" />
+<style>
+   .exit-button{
+        color:white;
+        padding:2px 4px 3px 4px;
+        border:1px solid white;
+        border-radius: 3px;
+        text-decoration:none;
+    }
+    .exit-button:hover{
+        color:black;
+        background:white;
+    }
+    .exit-button:focus{
+        color:gray;
+    }
+</style>
+
 <div id="container">
     <div id="blocker">
-
 			<div id="instructions">
-				<span style="font-size:40px">Click to play</span>
-				<br />
-				(W, A, S, D = Move, SPACE = Jump, MOUSE = Look around)
+                <div>
+                    <span style="font-size:40px">Click to play</span>
+                    <br />
+                    (W, A, S, D = Move, SPACE = Jump, MOUSE = Look around)
+                    <br />
+                    <a href="/client/lobby/list" class="exit-button">Exit</a>
+                </div>
 			</div>
-
 		</div>
 </div>
 
@@ -24,7 +43,6 @@ crossorigin="anonymous"></script>
     {% endfor %}
     }
 
-    console.log('player positions', player_positions);
 </script>
 <script src="{% static 'client/js/three.min.js' %}"></script>
 <script src="{% static 'client/js/lib/OrbitControls.js' %}"></script>

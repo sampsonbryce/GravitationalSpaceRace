@@ -7,3 +7,7 @@
     flex-direction:column;
     justify-content:center;
 }
+.lobby-navbar{
+	background-color:black;
+	color:white;
+}

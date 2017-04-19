@@ -42,14 +42,14 @@ def ws_chat_disconnect(message):
 # ----------------------CONTROL--------------------------------
 @channel_session_user_from_http
 def ws_control_connect(message):
-    print('control connect')
+    print('CONTROL connect')
     l_map = LobbyUserMap.objects.get(user=message.user)
     message.reply_channel.send({"accept": True})
     Group("{0}-control".format(l_map.lobby.id)).add(message.reply_channel)
 
 @channel_session_user
 def ws_control_receive(message):
-    print(message)
+    print("CONTROL:", message)
     l_map = LobbyUserMap.objects.get(user=message.user)
     if not l_map.is_admin:
         print('NOT ADMIN')
@@ -57,7 +57,7 @@ def ws_control_receive(message):
 
     action = message.content['text']
     Group("{0}-control".format(l_map.lobby.id)).send({
-        "data": json.dumps({
+        "text": json.dumps({
             "action": action,
         })
     })

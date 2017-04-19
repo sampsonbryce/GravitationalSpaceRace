@@ -39,7 +39,18 @@
                                 <p>Player count: {{ lobby.player_count }}</p>
                             </div>
                             <div class="column is-2 children-is-vertical-center">
-                                <a class="button is-primary" href="{% url 'client:lobby_join' lobby.id %}">Join</a>
+                                <a class="button is-primary" href="{% url 'client:lobby_join' lobby.id %}"
+                                   {% if lobby.started and lobby.id != my_lobby %}disabled{% endif %}>
+                                    {% if lobby.started and lobby.id == my_lobby %}
+                                        Enter Game
+                                    {% elif lobby.started %}
+                                        Started
+                                    {% elif lobby.id == my_lobby %}
+                                        Enter
+                                    {% else %}
+                                        Join
+                                    {% endif %}
+                                </a>
                             </div>
                         </div>
                     </div>

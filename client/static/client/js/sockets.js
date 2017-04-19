@@ -1,9 +1,9 @@
 function Sockets(){
     // Chat Socket default
-    this.chat_socket = new WebSocket("ws://" + window.location.host + "/lobby/chat/");
+    this.chat_socket = new WebSocket("ws://" + window.location.host + "/client/lobby/chat/");
 
     // Control Socket Default
-    this.control_socket = new WebSocket("ws://" + window.location.host + "/lobby/control/");
+    this.control_socket = new WebSocket("ws://" + window.location.host + "/client/lobby/control/");
 }
 
 Sockets.prototype.getChatSocket = function(){
