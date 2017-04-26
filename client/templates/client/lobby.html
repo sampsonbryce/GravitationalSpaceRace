@@ -32,20 +32,20 @@
             </div>
         </div>
     </section>
-    <div class="columns lobby-tiles">
+    <div class="columns lobby-tiles" id="lobby">
         <div class="column is-6 is-offset-2 has-text-centered box">
             <h2 class="title">Players</h2>
-            {% for player in players %}
-                <p class="{% cycle "row-1" "row-2" %}">{{  player }}</p>
-            {% endfor %}
+            <template v-if="lobby_data">
+                <p v-for="(player, index) in lobby_data.players" :class="index % 2 ? 'row-1' : 'row-2'">[[  player.username ]]</p>
+            </template>
         </div>
         <div class="column is-2">
             <div class="column is-12 box">
-                <p class="title">Created By: <span class="subtitle">{{ lobby.created_by }}</span></p>
-                <h3>Created Date: {{ lobby.created_date|date:"SHORT_DATETIME_FORMAT" }}</h3>
-                {% if is_admin %}
-                    <a href="{% url 'client:lobby_start' %}" class="button" id="start-button">Start Game</a>
-                {% endif %}
+                <template v-if="lobby_data">
+                    <p class="title">Created By: <span class="subtitle">[[ lobby_data.lobby.created_by ]]</span></p>
+                    <h3>Created Date: <formatted-date :date="lobby_data.lobby.created_date"></formatted-date></h3>
+                    <a v-if="lobby_data.is_admin" href="/client/lobby/start/" class="button" id="start-button">Start Game</a>
+                </template>
             </div>
 
             <div class="columns is-multiline is-12 box">

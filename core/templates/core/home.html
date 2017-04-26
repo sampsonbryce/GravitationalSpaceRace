@@ -108,6 +108,7 @@
 {% block body %}
 {% endblock %}
 
+<script src="https://unpkg.com/vue"></script>
 <script
   src="https://code.jquery.com/jquery-3.1.1.min.js"
   integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
@@ -123,6 +124,19 @@
                 {% endif %}
             {% endfor %}
         {% endif %}
+    });
+
+    Vue.component("formatted-date", {
+        delimiters: ["[[", "]]"],
+        props: ["date"],
+        template: '<span>[[ formattedDate ]]</span>',
+        computed: {
+            formattedDate: function(){
+                console.log('this.date', this.date);
+                var date_obj = new Date(this.date);
+                return date_obj.getMonth() + '/' + date_obj.getDate() + ', ' + date_obj.getHours() + ":" + date_obj.getMinutes();
+            }
+        }
     });
 </script>
 <script src="{% static "core/js/main.js" %}"></script>

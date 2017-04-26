@@ -22,8 +22,8 @@ $(function(){
         if(data.action == "start"){
             window.location.href = "/client"
         }
-        if(data.action == "user_join"){
-            //reload
+        if(data.action == "lobby_change"){
+            lobby.getData();
         }
     };
 
@@ -34,3 +34,28 @@ $(function(){
         }
     });
 });
+
+var lobby = new Vue({
+    delimiters: ["[[", "]]"],
+    el: '#lobby',
+    data: {
+        lobby_data: null
+    },
+    mounted: function(){
+        console.log('in mount');
+        this.getData();
+    },
+    methods:{
+        getData: function(){
+            console.log('getting data');
+            var scope = this;
+            $.getJSON("data/", function(data, textStatus, jqXHR){
+                console.log('data', data);
+                window.data = data;
+                scope.lobby_data = data;
+            });
+        }
+    }
+});
+
+window.lobby = lobby;

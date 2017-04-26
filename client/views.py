@@ -1,13 +1,15 @@
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ObjectDoesNotExist
-from django.http import HttpResponseRedirect, Http404
-from django.db.models import Count
+from django.http import HttpResponseRedirect, Http404, JsonResponse, HttpResponse
+from django.forms.models import model_to_dict
 from django.shortcuts import render, redirect, get_object_or_404
 from .models import Lobby, LobbyUserMap
 from django.contrib.auth.models import User
 from .forms import CreateLobbyForm
 from django.contrib import messages
-import re
+from django.core import serializers
+from core.helpers import JsonSerialize
+import re, json
 
 def lobby_navbar(request):
     context = {}
@@ -51,16 +53,24 @@ def lobby_start(request):
 
 @login_required(login_url='/accounts/login/')
 def lobby_list(request):
+    return render(request, 'client/lobby_list.html')
+
+@login_required(login_url='/accounts/login/')
+def lobby_list_data(request):
     # get lobbies and render view for lobbies
     lobbies = []
     try:
-        lobbies_list = Lobby.objects.annotate(player_count=Count('lobbyusermap__user'))
+        lobbies_list = Lobby.objects.all()
         for lobby in lobbies_list:
             if lobby.player_count == 0:
                 LobbyUserMap.objects.filter(lobby=lobby).delete()
                 lobby.delete()
             else:
-                lobbies.append(lobby)
+                lobby_dict = model_to_dict(lobby)
+                lobby_dict['player_count'] = lobby.player_count
+                lobby_dict['created_date'] = lobby.created_date.__str__()
+                lobby_dict['created_by'] = lobby.created_by.username
+                lobbies.append(lobby_dict)
     except Lobby.DoesNotExist:
         pass
 
@@ -74,9 +84,7 @@ def lobby_list(request):
         'lobbies': lobbies,
         'my_lobby': my_lobby
     }
-
-    return render(request, 'client/lobby_list.html', context)
-
+    return JsonResponse(context)
 
 @login_required(login_url='/accounts/login/')
 def lobby_create(request):
@@ -154,18 +162,33 @@ def lobby(request, lobby_id):
     try:
         lobby_map = LobbyUserMap.objects.get(user=request.user, lobby=lobby_id)
         if request.user.is_authenticated():
-            lobby_model = Lobby.objects.get(id=lobby_id)
-            players = User.objects.filter(lobbyusermap__lobby=lobby_id)
-            context = {
-                'is_admin': lobby_map.is_admin,
-                'lobby': lobby_model,
-                'players': players
-            }
-            return render(request, "client/lobby.html", context)
+            return render(request, "client/lobby.html", {})
         else:
             raise Http404("Authentication failed")
 
     except ObjectDoesNotExist:
         return HttpResponseRedirect("/client/lobby/list")
 
+def lobby_data(request, lobby_id):
+    try:
+        lobby_map = LobbyUserMap.objects.get(user=request.user, lobby=lobby_id)
+        if request.user.is_authenticated():
+            lobby_model = Lobby.objects.get(id=lobby_id)
+            lobby_dict = JsonSerialize(lobby_model)
+            lobby_dict["created_by"] = lobby_model.created_by.username
+            players = User.objects.filter(lobbyusermap__lobby=lobby_id)
+            player_list = JsonSerialize(players)
+            for player in player_list:
+                print(player)
+
+            context = {
+                'is_admin': lobby_map.is_admin,
+                'lobby': lobby_dict,
+                'players': player_list
+            }
+            return JsonResponse(context)
+        else:
+            return JsonResponse({"message":"Authentication failed"})
+    except ObjectDoesNotExist:
+        return JsonResponse({"message": "Failed to load lobby"})
 

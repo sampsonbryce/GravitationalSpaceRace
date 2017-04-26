@@ -9,6 +9,11 @@ class Lobby(models.Model):
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL)
     started = models.BooleanField(default=False)
 
+    def _get_player_count(self):
+        return len(LobbyUserMap.objects.filter(lobby=self))
+    player_count = property(_get_player_count)
+
+
 
 class LobbyUserMap(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL)

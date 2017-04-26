@@ -23,40 +23,77 @@
         </div>
     </div>
     <div class="columns">
-        <div class="column is-6 is-offset-3 has-text-centered">
-            {% if not lobbies %}
-                <p>No lobbies available</p>
-            {% else %}
-                {% for lobby in lobbies %}
-                    <div class="box">
-                        <div class="columns">
-                            <div class="column is-2" style="color:darkgray;">
-                                {{ lobby.created_by }}
-                                {{ lobby.created_date|date:"SHORT_DATETIME_FORMAT" }}
-                            </div>
-                            <div class="column is-8">
-                                <p>{{ lobby.name }}</p>
-                                <p>Player count: {{ lobby.player_count }}</p>
-                            </div>
-                            <div class="column is-2 children-is-vertical-center">
-                                <a class="button is-primary" href="{% url 'client:lobby_join' lobby.id %}"
-                                   {% if lobby.started and lobby.id != my_lobby %}disabled{% endif %}>
-                                    {% if lobby.started and lobby.id == my_lobby %}
-                                        Enter Game
-                                    {% elif lobby.started %}
-                                        Started
-                                    {% elif lobby.id == my_lobby %}
-                                        Enter
-                                    {% else %}
-                                        Join
-                                    {% endif %}
-                                </a>
-                            </div>
+        <div class="column is-6 is-offset-3 has-text-centered" id="lobby_list">
+            <div class="columns has-text-right">
+                <button type=button class="button" id="refresh" v-on:click="loadLobbyData()"><i class="fa fa-refresh"></i></button>
+            </div>
+            <template v-if="lobby_data">
+                <p v-if="!lobby_data.lobbies.length">No lobbies available</p>
+                <div v-for="lobby in lobby_data.lobbies" class="box">
+                    <div class="columns">
+                        <div class="column is-2" style="color:darkgray;">
+                            <div>[[ lobby.created_by ]]</div>
+                            <div>[[ formattedDate(lobby.created_date) ]]</div>
+                        </div>
+                        <div class="column is-8">
+                            <p>[[ lobby.name ]]</p>
+                            <p>Player count: [[ lobby.player_count ]]</p>
+                        </div>
+                        <div class="column is-2 children-is-vertical-center">
+                            <a class="button is-primary" :href="'/client/lobby/' + lobby.id + '/'" :disabled="isDisabled(lobby)">
+                                [[ lobbyButtonText(lobby) ]]
+                            </a>
                         </div>
                     </div>
-                {% endfor %}
-            {% endif %}
-
+                </div>
+            </template>
+            <div v-else>
+                Loading...
+            </div>
         </div>
     </div>
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        var lobby_list = new Vue({
+            delimiters: ["[[", "]]"],
+            el: '#lobby_list',
+            data: {
+                lobby_data: null
+            },
+            mounted: function(){
+                this.loadLobbyData();
+            },
+            methods: {
+                isDisabled: function(lobby){
+                    return lobby.started && lobby.id != this.lobby_data.my_lobby
+                },
+                lobbyButtonText: function(lobby){
+                    if(lobby.started && lobby.id == this.lobby_data.my_lobby){ return "Enter Game"; }
+                    else if(lobby.started){ return "Started"; }
+                    else if(lobby.id == this.lobby_data.my_lobby){return "Enter";}
+                    else {return "Join";}
+                },
+                formattedDate: function(date){
+                    date = new Date(date);
+                    return date.getMonth() + '/' + date.getDate() + ', ' + date.getHours() + ":" + date.getMinutes();
+
+                },
+                loadLobbyData: function(){
+                    this.lobby_data = null;
+                    var self = this;
+                    var promise = $.getJSON('{% url 'client:lobby_list_data' %}');
+                    $.when(promise).then(function(data, textStatus, jqXHR){
+                        console.log('got back', data);
+                        self.lobby_data = data;
+                    });
+
+                }
+            }
+        });
+
+        window.lobby_app = lobby_list;
+
+    </script>
 {% endblock %}
