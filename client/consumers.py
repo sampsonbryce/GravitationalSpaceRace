@@ -19,16 +19,23 @@ def ws_chat_receive(message):
     print('sending chat message')
     l_map = LobbyUserMap.objects.get(user=message.user)
     text = message.content['text']
-    name = text[:text.index(',')]
-    position = text[text.index(',')+1:]
-    position_data = json.loads(str(position))
-    print(name, position_data)
+    print('text', text)
     Group("{0}-chat".format(l_map.lobby.id)).send({
         "text": json.dumps({
-            "name": name,
-            "position": position
+            "username": message.user.username,
+            "message": text
         })
     })
+    # name = text[:text.index(',')]
+    # position = text[text.index(',')+1:]
+    # position_data = json.loads(str(position))
+    # print(name, position_data)
+    # Group("{0}-chat".format(l_map.lobby.id)).send({
+    #     "text": json.dumps({
+    #         "name": name,
+    #         "position": position
+    #     })
+    # })
 
 
 # Connected to websocket.disconnect
@@ -49,13 +56,20 @@ def ws_control_connect(message):
 
 @channel_session_user
 def ws_control_receive(message):
+    admin_controls = ["start"]
+    user_controls = ["leave", "join"]
+
     print("CONTROL:", message)
+    action = message.content['text']
     l_map = LobbyUserMap.objects.get(user=message.user)
-    if not l_map.is_admin:
+
+    if action in admin_controls and not l_map.is_admin:
         print('NOT ADMIN')
         return
 
-    action = message.content['text']
+    if action in user_controls:
+        action = "lobby_change"
+
     Group("{0}-control".format(l_map.lobby.id)).send({
         "text": json.dumps({
             "action": action,

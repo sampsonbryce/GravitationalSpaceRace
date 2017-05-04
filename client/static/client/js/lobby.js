@@ -3,8 +3,7 @@ $(function(){
     // set get message
     sockets.getChatSocket().onmessage = function(e) {
         console.log('e', e);
-        var el = $('<p></p>').text(e.data).addClass('message');
-        $('#messages').append(el);
+        lobby.messages.push(JSON.parse(e.data));
     };
 
     // send on enter
@@ -39,7 +38,8 @@ var lobby = new Vue({
     delimiters: ["[[", "]]"],
     el: '#lobby',
     data: {
-        lobby_data: null
+        lobby_data: null,
+        messages: []
     },
     mounted: function(){
         console.log('in mount');
@@ -47,10 +47,8 @@ var lobby = new Vue({
     },
     methods:{
         getData: function(){
-            console.log('getting data');
             var scope = this;
             $.getJSON("data/", function(data, textStatus, jqXHR){
-                console.log('data', data);
                 window.data = data;
                 scope.lobby_data = data;
             });

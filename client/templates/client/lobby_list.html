@@ -40,7 +40,7 @@
                             <p>Player count: [[ lobby.player_count ]]</p>
                         </div>
                         <div class="column is-2 children-is-vertical-center">
-                            <a class="button is-primary" :href="'/client/lobby/' + lobby.id + '/'" :disabled="isDisabled(lobby)">
+                            <a class="button is-primary join" :href="'/client/lobby/join/' + lobby.id + '/'" :disabled="isDisabled(lobby)">
                                 [[ lobbyButtonText(lobby) ]]
                             </a>
                         </div>

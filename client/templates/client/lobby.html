@@ -33,23 +33,24 @@
         </div>
     </section>
     <div class="columns lobby-tiles" id="lobby">
-        <div class="column is-6 is-offset-2 has-text-centered box">
+        <div class="column is-6 is-offset-2 has-text-centered box" style="margin-bottom:0;">
             <h2 class="title">Players</h2>
             <template v-if="lobby_data">
                 <p v-for="(player, index) in lobby_data.players" :class="index % 2 ? 'row-1' : 'row-2'">[[  player.username ]]</p>
             </template>
         </div>
-        <div class="column is-2">
-            <div class="column is-12 box">
+        <div class="column is-2 box">
+            <div class="column is-12 ">
                 <template v-if="lobby_data">
                     <p class="title">Created By: <span class="subtitle">[[ lobby_data.lobby.created_by ]]</span></p>
                     <h3>Created Date: <formatted-date :date="lobby_data.lobby.created_date"></formatted-date></h3>
                     <a v-if="lobby_data.is_admin" href="/client/lobby/start/" class="button" id="start-button">Start Game</a>
                 </template>
             </div>
-
-            <div class="columns is-multiline is-12 box">
+            <hr />
+            <div class="column is-12">
                 <div class="column is-12" id="messages">
+                    <div v-if="messages" v-for="message in messages"><b><span>[<span>[[ message.username ]]<span>]</span></b> [[ message.message ]]</div>
                 </div>
                 <div class="column is-12">
                     <input type="text" id="message-input" class="input">

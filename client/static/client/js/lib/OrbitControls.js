@@ -80,7 +80,6 @@ THREE.OrbitControls = function ( object, domElement ) {
 	this.position0 = this.object.position.clone();
 	this.zoom0 = this.object.zoom;
 
-    document.addEventListener( 'mousemove', handleMouseMoveRotate, false );
 	//
 	// public methods
 	//
@@ -94,6 +93,14 @@ THREE.OrbitControls = function ( object, domElement ) {
 	this.getAzimuthalAngle = function () {
 
 		return spherical.theta;
+
+	};
+
+	this.saveState = function () {
+
+		scope.target0.copy( scope.target );
+		scope.position0.copy( scope.object.position );
+		scope.zoom0 = scope.object.zoom;
 
 	};
 
@@ -131,14 +138,14 @@ THREE.OrbitControls = function ( object, domElement ) {
 			offset.copy( position ).sub( scope.target );
 
 			// rotate offset to "y-axis-is-up" space
-			// offset.applyQuaternion( quat );
+			offset.applyQuaternion( quat );
 
 			// angle from z-axis around y-axis
-			// spherical.setFromVector3( offset );
+			spherical.setFromVector3( offset );
 
 			if ( scope.autoRotate && state === STATE.NONE ) {
 
-				// rotateLeft( getAutoRotationAngle() );
+				rotateLeft( getAutoRotationAngle() );
 
 			}
 
@@ -160,8 +167,7 @@ THREE.OrbitControls = function ( object, domElement ) {
 			spherical.radius = Math.max( scope.minDistance, Math.min( scope.maxDistance, spherical.radius ) );
 
 			// move target to panned location
-			// console.log('target', scope.target);
-			// scope.target.add( panOffset );
+			scope.target.add( panOffset );
 
 			offset.setFromSpherical( spherical );
 
@@ -431,30 +437,23 @@ THREE.OrbitControls = function ( object, domElement ) {
 	}
 
 	function handleMouseMoveRotate( event ) {
-		if(!scope.enabled){return}
+
 		//console.log( 'handleMouseMoveRotate' );
 
-		// rotateEnd.set( event.clientX, event.clientY );
-		// rotateDelta.subVectors( rotateEnd, rotateStart );
+		rotateEnd.set( event.clientX, event.clientY );
+		rotateDelta.subVectors( rotateEnd, rotateStart );
 
 		var element = scope.domElement === document ? scope.domElement.body : scope.domElement;
-		var movementX = event.movementX || event.mozMovementX || event.webkitMovementX || 0;
-		var movementY = event.movementY || event.mozMovementY || event.webkitMovementY || 0;
 
-        rotateDelta.x = movementX;
-        rotateDelta.y = movementY;
-        console.log('movement', movementX, movementY);
 		// rotating across whole screen goes 360 degrees around
 		rotateLeft( 2 * Math.PI * rotateDelta.x / element.clientWidth * scope.rotateSpeed );
 
 		// rotating up and down along whole screen attempts to go 360, but limited to 180
 		rotateUp( 2 * Math.PI * rotateDelta.y / element.clientHeight * scope.rotateSpeed );
 
-        console.log('rotated');
-		// rotateStart.copy( rotateEnd );
+		rotateStart.copy( rotateEnd );
 
 		scope.update();
-        console.log('updated');
 
 	}
 
@@ -663,29 +662,37 @@ THREE.OrbitControls = function ( object, domElement ) {
 
 		event.preventDefault();
 
-		if ( event.button === scope.mouseButtons.ORBIT ) {
+		switch ( event.button ) {
 
-			if ( scope.enableRotate === false ) return;
+			case scope.mouseButtons.ORBIT:
 
-			handleMouseDownRotate( event );
+				if ( scope.enableRotate === false ) return;
 
-			state = STATE.ROTATE;
+				handleMouseDownRotate( event );
 
-		} else if ( event.button === scope.mouseButtons.ZOOM ) {
+				state = STATE.ROTATE;
 
-			if ( scope.enableZoom === false ) return;
+				break;
 
-			handleMouseDownDolly( event );
+			case scope.mouseButtons.ZOOM:
 
-			state = STATE.DOLLY;
+				if ( scope.enableZoom === false ) return;
 
-		} else if ( event.button === scope.mouseButtons.PAN ) {
+				handleMouseDownDolly( event );
 
-			if ( scope.enablePan === false ) return;
+				state = STATE.DOLLY;
 
-			handleMouseDownPan( event );
+				break;
 
-			state = STATE.PAN;
+			case scope.mouseButtons.PAN:
+
+				if ( scope.enablePan === false ) return;
+
+				handleMouseDownPan( event );
+
+				state = STATE.PAN;
+
+				break;
 
 		}
 
@@ -706,23 +713,31 @@ THREE.OrbitControls = function ( object, domElement ) {
 
 		event.preventDefault();
 
-		if ( state === STATE.ROTATE ) {
+		switch ( state ) {
 
-			if ( scope.enableRotate === false ) return;
+			case STATE.ROTATE:
 
-			handleMouseMoveRotate( event );
+				if ( scope.enableRotate === false ) return;
 
-		} else if ( state === STATE.DOLLY ) {
+				handleMouseMoveRotate( event );
 
-			if ( scope.enableZoom === false ) return;
+				break;
 
-			handleMouseMoveDolly( event );
+			case STATE.DOLLY:
 
-		} else if ( state === STATE.PAN ) {
+				if ( scope.enableZoom === false ) return;
 
-			if ( scope.enablePan === false ) return;
+				handleMouseMoveDolly( event );
 
-			handleMouseMovePan( event );
+				break;
+
+			case STATE.PAN:
+
+				if ( scope.enablePan === false ) return;
+
+				handleMouseMovePan( event );
+
+				break;
 
 		}
 

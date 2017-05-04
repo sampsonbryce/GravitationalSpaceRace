@@ -6,6 +6,8 @@
     <title>{% block title %}Gravitational Space Race{% endblock %}</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.3.1/css/bulma.css" />
     <link rel="stylesheet" href="{% static 'core/css/main.css' %}" />
+    <link rel="shortcut icon" href="{% static 'core/img/favicon.ico' %}" type="image/x-icon">
+    <link rel="icon" href="{% static 'core/img/favicon.ico' %}" type="image/x-icon">
     <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet" />
     {% block stylesheets %}
@@ -16,8 +18,8 @@
 <body>
 <nav class="nav">
     <div class="nav-left">
-        <a class="nav-item">
-            <img src="http://bulma.io/images/bulma-logo.png" alt="Bulma logo">
+        <a href="{% url "core:home" %}" class="nav-item">
+            <img src="{% static 'core/img/rocket-with-name.png' %}" alt="rocket-image">
         </a>
     </div>
 
@@ -72,7 +74,7 @@
 
         <div class="nav-center">
             <span class="nav-item">
-                <a class="button is-primary" href="{% url 'client:lobby' lobby.id %}">
+                <a class="button is-primary" href="{% url 'client:lobby_join' lobby.id %}">
                     Enter
                 </a>
             </span>
@@ -106,6 +108,11 @@
 </div>
 
 {% block body %}
+    <div class="columns">
+        <div class="column is-6 is-offset-3 has-text-centered">
+            <a class="button" href="{% url "core:presentation" %}">Presentation</a>
+        </div>
+    </div>
 {% endblock %}
 
 <script src="https://unpkg.com/vue"></script>
@@ -132,7 +139,6 @@
         template: '<span>[[ formattedDate ]]</span>',
         computed: {
             formattedDate: function(){
-                console.log('this.date', this.date);
                 var date_obj = new Date(this.date);
                 return date_obj.getMonth() + '/' + date_obj.getDate() + ', ' + date_obj.getHours() + ":" + date_obj.getMinutes();
             }

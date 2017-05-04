@@ -7,22 +7,24 @@ from .models import Lobby, LobbyUserMap
 from django.contrib.auth.models import User
 from .forms import CreateLobbyForm
 from django.contrib import messages
-from django.core import serializers
 from core.helpers import JsonSerialize
-import re, json
+import re
+
 
 def lobby_navbar(request):
-    context = {}
+    context = {
+        "disply_lobby_navbar": False
+    }
+    if(request.user.is_authenticated):
+        map = LobbyUserMap.objects.filter(user=request.user)
+        if map.count() > 0:
+            lobby = map.get().lobby
+            context["display_lobby_navbar"] = True
+            context["lobby"] = lobby
 
-    map = LobbyUserMap.objects.filter(user=request.user)
-    if map.count() > 0:
-        lobby = map.get().lobby
-        context["display_lobby_navbar"] = True
-        context["lobby"] = lobby
-
-    print("full path:", request.get_full_path())
-    if re.match(r'^/client/lobby/[0-9]+/$', request.get_full_path()) is not None:
-        context["display_lobby_navbar"] = False
+        print("full path:", request.get_full_path())
+        if re.match(r'^/client/lobby/[0-9]+/$', request.get_full_path()) is not None:
+            context["display_lobby_navbar"] = False
 
     return context
 
@@ -114,7 +116,7 @@ def lobby_create(request):
 def lobby_join(request, lobby_id):
     if request.user.is_authenticated():
         lobby = get_object_or_404(Lobby, id=lobby_id)
-
+        # get map for user
         map = LobbyUserMap.objects.filter(user=request.user)
         if lobby.started:
             if map.count() == 0:
@@ -122,7 +124,9 @@ def lobby_join(request, lobby_id):
                 messages.error(request, "Cannot join a lobby where the game has started, unless you were already in lobby")
                 return HttpResponseRedirect("/client/lobby/list")
             else:
-                if map.get().lobby.id != lobby_id:
+                # if we have a map, check if you are in the requested lobby
+                print('lobby id', lobby_id, map.get().lobby.id, type(map.get().lobby.id), type(lobby_id))
+                if int(map.get().lobby.id) != int(lobby_id):
                     print("Not in lobby, redirecting")
                     messages.error(request, "Cannot join a lobby where the game has started, unless you were already in lobby")
                     return HttpResponseRedirect("/client/lobby/list")
@@ -130,7 +134,7 @@ def lobby_join(request, lobby_id):
                     return HttpResponseRedirect("/client")
         else:
             # remove all current lobby maps for user
-            if map.get().lobby.id != lobby_id:
+            if map.count() > 0 and map.get().lobby.id != lobby_id:
                 map.delete()
 
         # make admin if only person in lobby
@@ -160,6 +164,9 @@ def lobby_leave(request, lobby_id):
 @login_required(login_url='/accounts/login/')
 def lobby(request, lobby_id):
     try:
+        lobby = Lobby.objects.get(id=lobby_id)
+        if lobby.started:
+            HttpResponseRedirect('/client/lobby/list')
         lobby_map = LobbyUserMap.objects.get(user=request.user, lobby=lobby_id)
         if request.user.is_authenticated():
             return render(request, "client/lobby.html", {})
